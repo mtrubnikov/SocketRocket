@@ -741,10 +741,22 @@ static __strong NSData *CRLFCRLF;
     }];
 }
 
-- (void)handlePong;
+- (void)ping
 {
-    // NOOP
+    [self _performDelegateBlock:^{
+        dispatch_async(_workQueue, ^{
+            [self _sendFrameWithOpcode:SROpCodePing data:[[NSString stringWithFormat:@"ping"] dataUsingEncoding:NSUTF8StringEncoding]];
+        });
+    }];
 }
+
+- (void)handlePong
+{
+    if (self.delegate && [self.delegate respondsToSelector:@selector(webSocket:pong:)]) {
+        [self.delegate webSocket:self pong:nil];
+    }
+}
+
 
 - (void)_handleMessage:(id)message
 {
